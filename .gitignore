@@ -1,7 +1,6 @@
 # Secrets and local state
 .env
 credentials.json
-credentials_*.json
 bot_persistence.pickle
 
 # Python
