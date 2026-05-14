@@ -221,9 +221,6 @@ def _normalize_google_service_account_info(info: dict) -> dict:
 
 
 def _load_google_service_account_info() -> dict:
-    env_info = _google_credentials_from_env()
-    if env_info is not None:
-        return env_info
     cred_path = _google_credentials_path()
     if os.path.isfile(cred_path):
         with open(cred_path, encoding="utf-8-sig") as f:
@@ -231,15 +228,18 @@ def _load_google_service_account_info() -> dict:
         if isinstance(info, dict):
             return _normalize_google_service_account_info(info)
         raise ValueError(f"Google credentials file is not a JSON object: {cred_path}")
+    env_info = _google_credentials_from_env()
+    if env_info is not None:
+        return env_info
     raise FileNotFoundError(cred_path)
 
 
 def _google_credentials_source_label() -> str:
-    if _google_credentials_from_env() is not None:
-        return "GOOGLE_CREDENTIALS_JSON"
     cred_path = _google_credentials_path()
     if os.path.isfile(cred_path):
         return cred_path
+    if _google_credentials_from_env() is not None:
+        return "GOOGLE_CREDENTIALS_JSON"
     return "missing"
 
 

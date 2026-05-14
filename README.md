@@ -5,7 +5,7 @@
 1. Python **3.12** (см. `runtime.txt`).
 2. `pip install -r requirements.txt`
 3. Скопируйте `.env.example` → `.env`, заполните переменные.
-4. Положите `credentials.json` (сервисный аккаунт Google с доступом к таблице) в корень проекта **или** задайте `GOOGLE_CREDENTIALS_JSON` в `.env` (одной строкой JSON).
+4. Положите `credentials.json` (сервисный аккаунт Google с доступом к таблице) в корень проекта. На Railway достаточно файла в репозитории; `GOOGLE_CREDENTIALS_JSON` в Variables — только запасной вариант, если файла нет.
 5. Папка `gifs/new/` с GIF из кода (`privet_1.gif` и др.) — без неё бот отправит текст вместо анимации.
 6. Запуск: `python main.py`
 
@@ -15,7 +15,7 @@
 2. В Google Sheets → **Доступ** → email из JSON (`client_email`, вид `...@....iam.gserviceaccount.com`) → **Редактор**.
 3. `GOOGLE_SHEET_ID` — id из URL таблицы (длинная строка между `/d/` и `/edit`).
 4. **Локально:** `credentials.json` рядом с `main.py` и заполненный `.env`. Если Python без `python-dotenv`, бот всё равно читает `.env` сам.
-5. **Railway / облако:** секреты **только в Variables**, не в git. Задайте `GOOGLE_CREDENTIALS_JSON` — **весь** JSON **одной** переменной; в коде она **важнее** файла `credentials.json` в образе. Не вставляйте обрезанный JSON и не коммитьте ключ в GitHub (push protection).
+5. **Railway / облако:** положите `credentials.json` в репозиторий (как на старом боте) и redeploy. Переменная `GOOGLE_CREDENTIALS_JSON` нужна только если файла в образе нет.
 6. После старта в логах: `source=GOOGLE_CREDENTIALS_JSON` или путь к файлу, `Successfully connected to Google Sheets`, `sheet_id_len` больше 0. Иначе аренда не откроет лист «Май 2026» и т.п.
 
 ## Railway
@@ -29,7 +29,7 @@
 | `TELEGRAM_BOT_TOKEN` | токен от @BotFather |
 | `ADMIN_CHAT_ID` | id чата для уведомлений (целое число, может быть отрицательным для групп) |
 | `GOOGLE_SHEET_ID` | id Google Spreadsheet |
-| `GOOGLE_CREDENTIALS_JSON` | весь JSON сервисного аккаунта (одна переменная) |
+| `GOOGLE_CREDENTIALS_JSON` | опционально, если нет `credentials.json` в репозитории |
 | `POLZA_IKONA_CHAT_API_KEY` | ключ Polza для IKONA AI |
 
 4. Рекомендуется **Volume** на корень приложения, чтобы сохранялись `bot_persistence.pickle` и `casino_win_feed.json`.
