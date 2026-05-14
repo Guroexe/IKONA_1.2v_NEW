@@ -31,7 +31,7 @@ from telegram.constants import ParseMode, ChatAction
 from telegram.error import BadRequest, Conflict, NetworkError, TimedOut
 from telegram.request import HTTPXRequest
 
-def _parse_dotenv_file(path: str) -> None:
+def _parse_dotenv_file(path: str, *, override: bool = False) -> None:
     """Минимальный парсер `.env`, если python-dotenv не установлен в текущем Python."""
     try:
         with open(path, encoding="utf-8-sig") as f:
@@ -41,7 +41,7 @@ def _parse_dotenv_file(path: str) -> None:
                     continue
                 key, _, value = line.partition("=")
                 key = key.strip()
-                if not key or key in os.environ:
+                if not key or (key in os.environ and not override):
                     continue
                 value = value.strip()
                 if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
@@ -52,15 +52,21 @@ def _parse_dotenv_file(path: str) -> None:
 
 
 def _load_dotenv() -> None:
-    """Подхватывает `.env` рядом с main.py (локально). На Railway переменные задаются в UI."""
+    """`.env` рядом с main.py: на Railway перекрывает Variables, если файл в репозитории."""
     root = os.path.dirname(os.path.abspath(__file__))
     env_path = os.path.join(root, ".env")
+    if not os.path.isfile(env_path):
+        return
     try:
         from dotenv import load_dotenv
 
-        load_dotenv(env_path)
+        load_dotenv(env_path, override=True)
     except ImportError:
-        _parse_dotenv_file(env_path)
+        _parse_dotenv_file(env_path, override=True)
+
+
+def _env_value(name: str, default: str = "") -> str:
+    return os.environ.get(name, default).strip().strip('"').strip("'")
 
 
 _load_dotenv()
@@ -84,8 +90,8 @@ from generation_flow import (
 # =================================================================================
 
 # --- Telegram (обязательно через переменные окружения — не коммитьте токены в git) ---
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-_admin_raw = os.environ.get("ADMIN_CHAT_ID", "").strip()
+TELEGRAM_BOT_TOKEN = _env_value("TELEGRAM_BOT_TOKEN")
+_admin_raw = _env_value("ADMIN_CHAT_ID")
 ADMIN_CHAT_ID = int(_admin_raw) if _admin_raw.lstrip("-").isdigit() else 0
 MASTERS_CHAT_LINK = "https://t.me/ikona02tattoo"
 
@@ -139,16 +145,16 @@ CASINO_CREATOR_TELEGRAM_IDS = _parse_telegram_id_set("CASINO_CREATOR_TELEGRAM_ID
 
 # --- Google Sheets ---
 GOOGLE_SHEETS_CREDS_FILE = os.environ.get("GOOGLE_SHEETS_CREDS_FILE", "credentials.json").strip() or "credentials.json"
-GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID", "").strip()
+GOOGLE_SHEET_ID = _env_value("GOOGLE_SHEET_ID")
 
 # --- OpenRouter (ключ пользователь может задать в настройках генерации; глобальный — опционально) ---
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
+OPENROUTER_API_KEY = _env_value("OPENROUTER_API_KEY")
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # --- Polza.ai: IKONA ИИ помощник (информация / чат) ---
 POLZA_API_BASE = "https://polza.ai/api/v1"
 POLZA_IKONA_CHAT_MODEL = os.environ.get("POLZA_IKONA_CHAT_MODEL", "openai/gpt-5.3-chat").strip() or "openai/gpt-5.3-chat"
-POLZA_IKONA_CHAT_API_KEY = os.environ.get("POLZA_IKONA_CHAT_API_KEY", "").strip()
+POLZA_IKONA_CHAT_API_KEY = _env_value("POLZA_IKONA_CHAT_API_KEY")
 
 # --- File Directories ---
 GIFS_DIR = os.path.join("gifs", "new")
